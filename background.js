@@ -143,6 +143,12 @@ function analyzeTrackers(domains) {
     const match = matchDomain(domain);
     if (match) {
       const { entry, confidence, matchedOn } = match;
+
+      // Bloc 8 — verbosité : en mode "minimal", ignorer les correspondances partielles (likely)
+      if (verbosity === 'minimal' && confidence === 'likely') {
+        continue;
+      }
+
       confirmed.push({
         domain, matchedOn, confidence,
         name:        expandName(entry.n, domain),
@@ -155,7 +161,9 @@ function analyzeTrackers(domains) {
         sources:     (entry.s || '').split(',').filter(Boolean)
       });
     } else {
-      unknown.push({ domain, confidence: 'unknown' });
+      // En mode "strict", inclure les domaines inconnus comme suspects
+      // En mode "standard" ou "minimal", les lister séparément sans alerte
+      unknown.push({ domain, confidence: 'unknown', flagged: verbosity === 'strict' });
     }
   }
 
@@ -548,7 +556,11 @@ chrome.tabs.onRemoved.addListener(tabId => {
 // Bloc 9 : effacer les données locales à la désinstallation
 chrome.runtime.onInstalled.addListener(details => {
   if (details.reason === 'install') {
-    console.log('TrackMap: première installation');
+    // Ouvrir la page de bienvenue au premier lancement
+    chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
+  }
+  if (details.reason === 'update') {
+    console.log('TrackMap mis à jour vers', chrome.runtime.getManifest().version);
   }
 });
 

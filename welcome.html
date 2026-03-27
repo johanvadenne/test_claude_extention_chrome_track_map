@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bienvenue sur TrackMap</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f; --bg2: #111118; --bg3: #1a1a24;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+    --text: #e8e8f0; --text2: #8888a8; --text3: #555570;
+    --accent: #7c6dfa; --accent2: #a89cf7;
+    --red: #ff4757; --amber: #ffb347; --green: #2ecc71;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .card {
+    max-width: 560px; width: 100%;
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 48px;
+    text-align: center;
+  }
+
+  .logo-wrap {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; margin-bottom: 32px;
+  }
+  .logo-mark {
+    width: 48px; height: 48px; background: var(--accent);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  }
+  .logo-mark svg { width: 26px; height: 26px; }
+  .logo-text { font-family: 'Space Mono', monospace; font-size: 24px; font-weight: 700; }
+  .logo-text span { color: var(--accent2); }
+
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 10px; }
+  .subtitle { font-size: 15px; color: var(--text2); line-height: 1.6; margin-bottom: 40px; }
+
+  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 40px; text-align: left; }
+  .feature {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .feature-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 10px;
+  }
+  .feature-icon.red    { background: rgba(255,71,87,0.15); }
+  .feature-icon.amber  { background: rgba(255,179,71,0.15); }
+  .feature-icon.purple { background: rgba(124,109,250,0.15); }
+  .feature-icon.green  { background: rgba(46,204,113,0.15); }
+  .feature-icon svg { width: 16px; height: 16px; }
+  .feature-icon.red    svg { stroke: var(--red); }
+  .feature-icon.amber  svg { stroke: var(--amber); }
+  .feature-icon.purple svg { stroke: var(--accent2); }
+  .feature-icon.green  svg { stroke: var(--green); }
+
+  .feature-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .feature-desc  { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+  .privacy-note {
+    background: rgba(46,204,113,0.07); border: 1px solid rgba(46,204,113,0.2);
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 28px;
+    font-size: 12px; color: var(--text2); line-height: 1.6; text-align: left;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .privacy-shield { flex-shrink: 0; color: var(--green); font-size: 18px; margin-top: 1px; }
+
+  .btn-primary {
+    display: inline-block; padding: 13px 32px;
+    background: var(--accent); border: none; border-radius: 10px;
+    color: #fff; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    text-decoration: none; transition: opacity .15s;
+    margin-bottom: 12px; width: 100%;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+
+  .links { display: flex; justify-content: center; gap: 20px; }
+  .links a { font-size: 12px; color: var(--text3); text-decoration: none; transition: color .15s; }
+  .links a:hover { color: var(--accent2); }
+
+  .step-hint {
+    font-size: 11px; color: var(--text3); margin-top: 24px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .step-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+    animation: blink 1.5s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="logo-wrap">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="2.5" fill="white"/>
+        <circle cx="3" cy="4" r="1.5" fill="white" opacity=".5"/>
+        <circle cx="13" cy="5" r="1.5" fill="white" opacity=".5"/>
+        <circle cx="4" cy="12" r="1.5" fill="white" opacity=".5"/>
+        <circle cx="12" cy="12" r="1.5" fill="white" opacity=".5"/>
+        <line x1="8" y1="8" x2="3" y2="4" stroke="white" stroke-width="0.8" opacity=".4"/>
+        <line x1="8" y1="8" x2="13" y2="5" stroke="white" stroke-width="0.8" opacity=".4"/>
+        <line x1="8" y1="8" x2="4" y2="12" stroke="white" stroke-width="0.8" opacity=".4"/>
+        <line x1="8" y1="8" x2="12" y2="12" stroke="white" stroke-width="0.8" opacity=".4"/>
+      </svg>
+    </div>
+    <span class="logo-text">Track<span>Map</span></span>
+  </div>
+
+  <h1>TrackMap est installé</h1>
+  <p class="subtitle">Naviguez normalement. TrackMap analyse silencieusement chaque page et vous informe des trackers présents — sans rien collecter sur vous.</p>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon red">
+        <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="8"/><circle cx="8" cy="11" r=".5" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="feature-title">Trackers identifiés</div>
+      <div class="feature-desc">Détecte Google, Meta, TikTok et 220+ autres trackers avec explication en français.</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon amber">
+        <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 16 16">
+          <rect x="2" y="2" width="12" height="12" rx="2"/>
+          <line x1="2" y1="6" x2="14" y2="6"/>
+          <line x1="6" y1="6" x2="6" y2="14"/>
+        </svg>
+      </div>
+      <div class="feature-title">Graphe de session</div>
+      <div class="feature-desc">Visualisez interactivement tous les sites visités et leurs connexions.</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon purple">
+        <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="5"/>
+          <line x1="8" y1="3" x2="8" y2="8"/>
+          <line x1="8" y1="8" x2="11" y2="10"/>
+        </svg>
+      </div>
+      <div class="feature-title">Mise à jour auto</div>
+      <div class="feature-desc">Le popup se rafraîchit automatiquement à chaque navigation.</div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon green">
+        <svg fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 16 16">
+          <path d="M8 2L3 4.5V8.5C3 11.2 5.2 13.6 8 14.5C10.8 13.6 13 11.2 13 8.5V4.5L8 2Z"/>
+          <polyline points="5.5,8 7,9.5 10.5,6"/>
+        </svg>
+      </div>
+      <div class="feature-title">100% local</div>
+      <div class="feature-desc">Aucune donnée ne quitte votre navigateur. Zéro serveur, zéro télémétrie.</div>
+    </div>
+  </div>
+
+  <div class="privacy-note">
+    <span class="privacy-shield">✦</span>
+    <span>TrackMap ne collecte <strong>aucune donnée personnelle</strong>. Il observe ce que font les <em>autres sites</em> — pas vous. Toute l'analyse se fait localement, les données sont effacées à la désinstallation.</span>
+  </div>
+
+  <button class="btn-primary" id="btn-start" onclick="window.close()">
+    Commencer à naviguer
+  </button>
+
+  <div class="links">
+    <a href="options.html" id="link-options">Options</a>
+    <a href="privacy.html" target="_blank">Confidentialité</a>
+  </div>
+
+  <div class="step-hint">
+    <div class="step-dot"></div>
+    Cliquez sur l'icône TrackMap dans la barre d'outils pour voir les trackers de la page active
+  </div>
+
+</div>
+
+<script>
+document.getElementById('link-options').addEventListener('click', e => {
+  e.preventDefault();
+  chrome.runtime.openOptionsPage();
+});
+</script>
+</body>
+</html>

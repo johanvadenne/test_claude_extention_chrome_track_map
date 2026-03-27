@@ -1,0 +1,12 @@
+{
+  "name": "trackmap",
+  "version": "2.0.0",
+  "description": "Extension Chrome — analyse de trackers et cartographie de session",
+  "scripts": {
+    "build": "node build/build-trackers-db.js",
+    "build:offline": "node build/build-trackers-db.js --offline",
+    "build:stats": "node build/build-trackers-db.js --offline --stats",
+    "build:online": "node build/build-trackers-db.js --stats"
+  },
+  "private": true
+}

@@ -38,7 +38,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["src/trackers-db.json"],
+      "resources": ["src/trackers-db-full.json"],
       "matches": ["<all_urls>"]
     }
   ]

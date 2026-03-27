@@ -876,3 +876,152 @@ vpX = W0 / 2; vpY = H0 / 2;
 
 loadData(false);
 setInterval(updateFooter, 5000);
+
+// ── Bloc 8 : Bouton options ────────────────────────────────────────────────
+
+document.getElementById('btn-options')?.addEventListener('click', () => {
+  chrome.runtime.openOptionsPage();
+});
+
+// ── Bloc 9 : Export ────────────────────────────────────────────────────────
+
+const exportModalBg = document.getElementById('export-modal-bg');
+
+document.getElementById('btn-export')?.addEventListener('click', () => {
+  exportModalBg.classList.add('open');
+});
+document.getElementById('export-cancel')?.addEventListener('click', () => {
+  exportModalBg.classList.remove('open');
+});
+exportModalBg?.addEventListener('click', e => {
+  if (e.target === exportModalBg) exportModalBg.classList.remove('open');
+});
+
+// Export JSON
+document.getElementById('export-json')?.addEventListener('click', () => {
+  exportModalBg.classList.remove('open');
+  exportReport('json');
+});
+
+// Export HTML
+document.getElementById('export-html')?.addEventListener('click', () => {
+  exportModalBg.classList.remove('open');
+  exportReport('html');
+});
+
+function exportReport(format) {
+  // Construire la payload depuis les données en mémoire
+  const now   = new Date();
+  const stamp = now.toISOString();
+
+  const payload = {
+    generatedAt:  stamp,
+    extension:    'TrackMap v5',
+    page: pageData ? {
+      domain:              pageData.domain,
+      url:                 pageData.url,
+      title:               pageData.title,
+      analysedAt:          new Date(pageData.timestamp).toISOString(),
+      trackersConfirmed:   (pageData.trackers || []).filter(t => t.confidence === 'confirmed'),
+      trackersProbable:    (pageData.trackers || []).filter(t => t.confidence === 'likely'),
+      thirdPartyDomains:   pageData.allThirdPartyDomains || [],
+      riskBreakdown:       pageData.breakdown || {}
+    } : null,
+    session: graphData ? {
+      sites:   Object.values(graphData.nodes || {}).map(n => ({
+        domain:     n.domain,
+        visits:     n.visits,
+        riskScore:  n.riskScore,
+        trackers:   (n.trackers || []).length,
+        lastSeen:   new Date(n.lastSeen || 0).toISOString()
+      })),
+      edges: graphData.edges || []
+    } : null
+  };
+
+  if (format === 'json') {
+    downloadBlob(
+      JSON.stringify(payload, null, 2),
+      `trackmap-report-${now.toISOString().slice(0,10)}.json`,
+      'application/json'
+    );
+  } else {
+    downloadBlob(
+      buildHTMLReport(payload),
+      `trackmap-report-${now.toISOString().slice(0,10)}.html`,
+      'text/html'
+    );
+  }
+}
+
+function downloadBlob(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function buildHTMLReport(data) {
+  const page    = data.page;
+  const session = data.session;
+
+  const riskColor = score =>
+    score >= 7 ? '#ff4757' : score >= 4 ? '#ffb347' : score >= 1 ? '#2ecc71' : '#888';
+
+  const trackerRows = (page?.trackersConfirmed || []).concat(page?.trackersProbable || []).map(t => `
+    <tr>
+      <td style="font-family:monospace;font-size:11px">${t.domain}</td>
+      <td>${t.name}</td>
+      <td>${t.owner || '?'}</td>
+      <td style="color:${riskColor(t.risk==='high'?8:t.risk==='medium'?5:2)}">${t.risk === 'high' ? 'Élevé' : t.risk === 'medium' ? 'Modéré' : 'Faible'}</td>
+      <td style="color:#888;font-size:11px">${t.confidence === 'likely' ? 'Probable' : 'Confirmé'}</td>
+    </tr>`).join('');
+
+  const sessionRows = (session?.sites || []).sort((a,b) => b.visits - a.visits).map(s => `
+    <tr>
+      <td style="font-family:monospace;font-size:11px">${s.domain}</td>
+      <td>${s.visits}</td>
+      <td style="color:${riskColor(s.riskScore)}">${s.riskScore}/10</td>
+      <td>${s.trackers}</td>
+    </tr>`).join('');
+
+  return `<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<title>Rapport TrackMap — ${page?.domain || 'session'}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,sans-serif;background:#0a0a0f;color:#e8e8f0;padding:40px;font-size:14px}
+  h1{font-size:22px;margin-bottom:4px}
+  .meta{color:#888;font-size:12px;margin-bottom:32px}
+  h2{font-size:16px;font-weight:600;margin:28px 0 12px;border-bottom:1px solid #1a1a24;padding-bottom:8px}
+  table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px}
+  th{text-align:left;padding:8px 10px;background:#13131f;color:#8888a8;font-weight:500;border-bottom:1px solid #1a1a24}
+  td{padding:8px 10px;border-bottom:1px solid #13131f;color:#8888a8}
+  .footer{margin-top:40px;font-size:11px;color:#555570;text-align:center}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;background:#1a1a24;color:#7c6dfa}
+</style>
+</head><body>
+<h1>Rapport TrackMap</h1>
+<div class="meta">Généré le ${new Date(data.generatedAt).toLocaleString('fr-FR')} · ${data.extension} <span class="badge">100% local</span></div>
+
+${page ? `
+<h2>Page analysée : ${page.domain}</h2>
+<p style="color:#888;font-size:12px;margin-bottom:12px">${page.url}</p>
+<table>
+  <tr><th>Domaine</th><th>Nom</th><th>Propriétaire</th><th>Risque</th><th>Confiance</th></tr>
+  ${trackerRows || '<tr><td colspan="5" style="color:#555">Aucun tracker identifié</td></tr>'}
+</table>` : ''}
+
+${session && session.sites.length > 0 ? `
+<h2>Session de navigation (${session.sites.length} sites)</h2>
+<table>
+  <tr><th>Domaine</th><th>Visites</th><th>Score risque</th><th>Trackers</th></tr>
+  ${sessionRows}
+</table>` : ''}
+
+<div class="footer">TrackMap · Rapport généré localement · Aucune donnée envoyée à des tiers</div>
+</body></html>`;
+}

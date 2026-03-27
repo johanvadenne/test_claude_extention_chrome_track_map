@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TrackMap",
-  "version": "3.1.0",
+  "version": "5.0.0",
   "description": "Qui vous surveille ? Cartographiez vos trackers et votre session de navigation en temps réel.",
   "permissions": [
     "tabs",
@@ -19,10 +19,7 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
+      "matches": ["http://*/*", "https://*/*"],
       "js": ["src/content.js"],
       "run_at": "document_idle",
       "all_frames": false
@@ -36,6 +33,7 @@
       "128": "icons/icon128.png"
     }
   },
+  "options_page": "options.html",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -43,7 +41,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["src/trackers-db-full.json"],
+      "resources": ["src/trackers-db-full.json", "privacy.html"],
       "matches": ["http://*/*", "https://*/*"]
     }
   ]

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrackMap — Politique de confidentialité</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d14; --bg2: #13131f;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e8f0; --text2: #8888a8; --text3: #555570;
+    --accent: #7c6dfa; --accent2: #a89cf7;
+    --green: #2ecc71;
+  }
+
+  body {
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.8; font-size: 15px;
+  }
+
+  .page { max-width: 720px; margin: 0 auto; padding: 60px 32px 80px; }
+
+  header { margin-bottom: 48px; border-bottom: 1px solid var(--border); padding-bottom: 32px; }
+
+  .logo-line {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  }
+  .logo-dot {
+    width: 28px; height: 28px; background: var(--accent); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-dot svg { width: 14px; height: 14px; }
+  .logo-name { font-family: monospace; font-size: 16px; font-weight: 700; }
+  .logo-name span { color: var(--accent2); }
+
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .meta { font-size: 13px; color: var(--text3); }
+
+  .summary-box {
+    background: rgba(46,204,113,0.08); border: 1px solid rgba(46,204,113,0.2);
+    border-radius: 12px; padding: 20px 24px; margin: 32px 0;
+  }
+  .summary-box p {
+    font-size: 14px; color: var(--text); font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .summary-box p:last-child { margin-bottom: 0; }
+
+  .check-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 14px; color: var(--text2); margin-bottom: 8px;
+  }
+  .check-row::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  section { margin-bottom: 40px; }
+
+  h2 {
+    font-size: 18px; font-weight: 600; margin-bottom: 14px;
+    color: var(--text); padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  p { color: var(--text2); margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+
+  code {
+    font-family: 'Courier New', monospace; font-size: 12px;
+    background: var(--bg2); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 4px; color: var(--accent2);
+  }
+
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 16px 0; font-size: 13px;
+  }
+  th {
+    text-align: left; padding: 8px 12px;
+    background: var(--bg2); color: var(--text2);
+    border-bottom: 1px solid var(--border); font-weight: 500;
+  }
+  td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    color: var(--text2); vertical-align: top;
+  }
+  td:first-child { font-family: monospace; font-size: 11px; color: var(--accent2); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+
+  .no-collect {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px; background: rgba(255,71,87,0.06);
+    border: 1px solid rgba(255,71,87,0.15); border-radius: 8px;
+    font-size: 13px; color: #ff7070; margin-bottom: 10px;
+  }
+  .no-collect::before { content: '✗'; font-weight: 700; color: #ff4757; flex-shrink: 0; }
+
+  footer {
+    margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text3); text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="logo-line">
+      <div class="logo-dot">
+        <svg viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="2.5" fill="white"/>
+          <circle cx="3" cy="4" r="1.5" fill="white" opacity=".5"/>
+          <circle cx="13" cy="5" r="1.5" fill="white" opacity=".5"/>
+          <line x1="8" y1="8" x2="3" y2="4" stroke="white" stroke-width="0.8" opacity=".4"/>
+          <line x1="8" y1="8" x2="13" y2="5" stroke="white" stroke-width="0.8" opacity=".4"/>
+        </svg>
+      </div>
+      <span class="logo-name">Track<span>Map</span></span>
+    </div>
+    <h1>Politique de confidentialité</h1>
+    <div class="meta">Dernière mise à jour : mars 2026 · Version 5.0</div>
+
+    <div class="summary-box">
+      <p>TrackMap est une extension de navigateur conçue pour vous informer sur les trackers présents sur les sites que vous visitez. <strong>Elle ne collecte, ne transmet et ne vend aucune de vos données personnelles.</strong></p>
+      <div class="check-row">Toute l'analyse se fait localement dans votre navigateur</div>
+      <div class="check-row">Aucun serveur distant n'est contacté lors de l'analyse</div>
+      <div class="check-row">Aucune donnée de navigation ne quitte votre appareil</div>
+      <div class="check-row">Les données locales sont effacées à la désinstallation</div>
+      <div class="check-row">Code source auditable, aucune télémétrie</div>
+    </div>
+  </header>
+
+  <section>
+    <h2>1. Ce que TrackMap ne collecte jamais</h2>
+    <p>Les éléments suivants ne sont jamais collectés, stockés ou transmis :</p>
+    <div class="no-collect">Votre identité, nom, adresse e-mail ou tout autre identifiant personnel</div>
+    <div class="no-collect">L'historique complet de votre navigation (seule la session en cours est analysée)</div>
+    <div class="no-collect">Le contenu des pages web que vous visitez</div>
+    <div class="no-collect">Vos mots de passe, données de formulaire ou informations de paiement</div>
+    <div class="no-collect">Des données de localisation ou de l'appareil à des fins de profilage</div>
+    <div class="no-collect">Des statistiques d'utilisation ou de télémétrie</div>
+  </section>
+
+  <section>
+    <h2>2. Données stockées localement</h2>
+    <p>TrackMap stocke les données suivantes <strong>uniquement sur votre appareil</strong>, jamais sur un serveur externe :</p>
+
+    <table>
+      <tr>
+        <th>Emplacement</th>
+        <th>Contenu</th>
+        <th>Durée</th>
+      </tr>
+      <tr>
+        <td>chrome.storage.local</td>
+        <td>Graphe de session (domaines visités, connexions, positions des nœuds), données de la page active (trackers détectés, scores de risque)</td>
+        <td>Session en cours, effacé à la désinstallation</td>
+      </tr>
+      <tr>
+        <td>chrome.storage.sync</td>
+        <td>Options utilisateur uniquement : sites exclus, niveau de détection, préférences d'affichage. Aucune donnée de navigation.</td>
+        <td>Jusqu'à suppression manuelle ou désinstallation</td>
+      </tr>
+    </table>
+
+    <p>Les données dans <code>chrome.storage.sync</code> sont synchronisées par le navigateur entre vos appareils si vous êtes connecté à votre compte Chrome ou Firefox. Cette synchronisation est chiffrée de bout en bout par Google/Mozilla et TrackMap n'y a pas accès.</p>
+  </section>
+
+  <section>
+    <h2>3. Accès réseau</h2>
+    <p>TrackMap accède au réseau uniquement pour :</p>
+    <p><strong>Chargement des polices Google Fonts</strong> dans les pages d'options et de confidentialité. Ces requêtes ne contiennent aucune donnée de navigation et peuvent être évitées en utilisant une version hors-ligne.</p>
+    <p>TrackMap n'effectue <strong>aucun appel réseau pendant l'analyse</strong> des pages que vous visitez. La base de données de trackers (<code>trackers-db-full.json</code>) est entièrement incluse dans le bundle de l'extension et consultée localement.</p>
+  </section>
+
+  <section>
+    <h2>4. Permissions utilisées</h2>
+    <table>
+      <tr><th>Permission</th><th>Usage</th></tr>
+      <tr><td>tabs</td><td>Identifier l'onglet actif pour afficher les données correspondantes dans le popup.</td></tr>
+      <tr><td>storage</td><td>Persister le graphe de session et les options localement.</td></tr>
+      <tr><td>scripting</td><td>Injecter le content script dans les pages HTTP/HTTPS pour détecter les scripts tiers.</td></tr>
+      <tr><td>webRequest</td><td>Intercepter les requêtes réseau pour détecter les trackers chargés dynamiquement. Aucune requête n'est modifiée ou bloquée.</td></tr>
+      <tr><td>cookies</td><td>Réservé pour une future fonctionnalité d'analyse des cookies tiers. Non utilisé dans la version actuelle.</td></tr>
+      <tr><td>host_permissions (http, https)</td><td>Nécessaire pour que webRequest puisse observer les requêtes sur toutes les pages.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>5. Désinstallation et suppression des données</h2>
+    <p>Lors de la désinstallation de TrackMap, l'extension efface automatiquement toutes les données locales (<code>chrome.storage.local</code>) via l'événement <code>chrome.runtime.onInstalled</code>.</p>
+    <p>Les données <code>chrome.storage.sync</code> (options utilisateur) peuvent être effacées manuellement depuis la page Options → Confidentialité → "Effacer toutes les données maintenant", ou automatiquement à la désinstallation selon la politique du navigateur.</p>
+  </section>
+
+  <section>
+    <h2>6. Tiers et services externes</h2>
+    <p>TrackMap utilise les listes de trackers publiques suivantes pour construire sa base de données, consultées <strong>au moment du build uniquement</strong> (pas à l'exécution) :</p>
+    <div class="check-row">Disconnect.me Tracker Protection List (licence MPL 2.0)</div>
+    <div class="check-row">DuckDuckGo Tracker Radar (licence Creative Commons)</div>
+    <div class="check-row">EasyPrivacy (licence CC BY-SA 3.0)</div>
+    <p style="margin-top:14px">Ces listes ne sont pas consultées lors de l'utilisation de l'extension — elles sont intégrées dans le bundle à la compilation.</p>
+  </section>
+
+  <section>
+    <h2>7. Modifications de cette politique</h2>
+    <p>Toute modification de cette politique de confidentialité sera accompagnée d'une mise à jour de la version de l'extension visible dans la page À propos. Les modifications substantielles feront l'objet d'une notification dans le popup au premier lancement après mise à jour.</p>
+  </section>
+
+  <footer>
+    TrackMap · Politique de confidentialité · Version 5.0 · Mars 2026<br>
+    Aucune donnée personnelle collectée · Analyse 100% locale
+  </footer>
+
+</div>
+</body>
+</html>

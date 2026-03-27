@@ -16,6 +16,33 @@ let suffixIndex = null;
 let dbMeta      = null;
 let dbVersion   = null;
 
+// Bloc 8 : options (chargées depuis chrome.storage.sync)
+let badgeEnabled   = true;
+let badgeColor     = true;
+let blockedDomains = new Set();
+let verbosity      = 'standard';
+
+async function loadOptions() {
+  try {
+    const opts = await new Promise(r => chrome.storage.sync.get({
+      badgeEnabled: true, badgeColor: true, blockedDomains: [], verbosity: 'standard'
+    }, r));
+    badgeEnabled   = opts.badgeEnabled;
+    badgeColor     = opts.badgeColor;
+    blockedDomains = new Set(opts.blockedDomains || []);
+    verbosity      = opts.verbosity || 'standard';
+  } catch(e) { console.error('TrackMap: échec chargement options', e); }
+}
+
+// Écouter les changements d'options en temps réel
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'sync') return;
+  if (changes.badgeEnabled)   badgeEnabled   = changes.badgeEnabled.newValue;
+  if (changes.badgeColor)     badgeColor     = changes.badgeColor.newValue;
+  if (changes.verbosity)      verbosity      = changes.verbosity.newValue;
+  if (changes.blockedDomains) blockedDomains = new Set(changes.blockedDomains.newValue || []);
+});
+
 // Bloc 2 : debounce de persistance du graphe (2s)
 let persistTimer = null;
 const PERSIST_DEBOUNCE_MS = 2000;
@@ -293,6 +320,12 @@ async function handlePageData(data, tabId) {
   await loadTrackersDB();
   const { domain, title, scripts = [], iframes = [] } = data;
 
+  // Bloc 8 : ignorer les sites exclus dans les options
+  if (blockedDomains.has(domain)) {
+    chrome.action.setBadgeText({ text: '', tabId }).catch(() => {});
+    return;
+  }
+
   // Fusionner les domaines DOM (content script) + réseau (webRequest)
   const wrDomains = webRequestDomains.get(tabId) || new Set();
   const allThirdParty = [...new Set([
@@ -323,8 +356,16 @@ async function handlePageData(data, tabId) {
   const count   = trackers.length;
   const hasHigh = trackers.some(t => t.risk === 'high');
   try {
-    chrome.action.setBadgeText({ text: count > 0 ? String(count) : '', tabId });
-    chrome.action.setBadgeBackgroundColor({ color: hasHigh ? '#ef4444' : count >= 2 ? '#f59e0b' : '#22c55e', tabId });
+    if (badgeEnabled) {
+      chrome.action.setBadgeText({ text: count > 0 ? String(count) : '', tabId });
+      if (badgeColor) {
+        chrome.action.setBadgeBackgroundColor({ color: hasHigh ? '#ef4444' : count >= 2 ? '#f59e0b' : '#22c55e', tabId });
+      } else {
+        chrome.action.setBadgeBackgroundColor({ color: '#7c6dfa', tabId });
+      }
+    } else {
+      chrome.action.setBadgeText({ text: '', tabId });
+    }
   } catch (_) {}
 }
 
@@ -444,6 +485,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse(matchDomain(message.domain) || null);
     return false;
   }
+
+  // Bloc 8 : options — activer/désactiver le badge
+  if (message.type === 'SET_BADGE_ENABLED') {
+    badgeEnabled = message.enabled;
+    if (!badgeEnabled) {
+      chrome.tabs.query({}, tabs => {
+        tabs.forEach(tab => chrome.action.setBadgeText({ text: '', tabId: tab.id }).catch(() => {}));
+      });
+    }
+    sendResponse({ ok: true });
+    return false;
+  }
+
+  // Bloc 9 : données pour l'export (popup demande toutes les données)
+  if (message.type === 'GET_EXPORT_DATA') {
+    chrome.storage.local.get(null, result => {
+      sendResponse({ ok: true, data: result });
+    });
+    return true;
+  }
 });
 
 // ── Navigation ────────────────────────────────────────────────────────────
@@ -470,10 +531,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       const proto = new URL(tab.url).protocol;
       if (proto !== 'http:' && proto !== 'https:') return;
     } catch(_) { return; }
-    const views = chrome.extension.getViews({ type: 'popup' });
-    if (views.length > 0) {
-      chrome.runtime.sendMessage({ type: 'NAV_UPDATE', tabId }).catch(() => {});
-    }
+    // chrome.extension.getViews est indisponible dans les Service Workers MV3.
+    // sendMessage échoue silencieusement si le popup est fermé — aucun handler actif.
+    chrome.runtime.sendMessage({ type: 'NAV_UPDATE', tabId }).catch(() => {});
   }
 });
 
@@ -485,6 +545,20 @@ chrome.tabs.onRemoved.addListener(tabId => {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 
-Promise.all([loadTrackersDB(), restoreGraph()]).then(() => {
+// Bloc 9 : effacer les données locales à la désinstallation
+chrome.runtime.onInstalled.addListener(details => {
+  if (details.reason === 'install') {
+    console.log('TrackMap: première installation');
+  }
+});
+
+// Nettoyage à la désinstallation — setUninstallURL peut déclencher une page
+// mais le storage.local est effacé automatiquement par le navigateur.
+// On s'assure aussi de nettoyer chrome.storage.sync.
+try {
+  chrome.runtime.setUninstallURL('', () => {});
+} catch(_) {}
+
+Promise.all([loadTrackersDB(), loadOptions(), restoreGraph()]).then(() => {
   console.log('TrackMap Service Worker prêt');
 });

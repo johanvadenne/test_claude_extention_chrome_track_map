@@ -151,17 +151,74 @@ function calculateRiskScore(trackers) {
 
 function buildRiskBreakdown(trackers, unknown) {
   const factors = [];
-  const high   = trackers.filter(t => t.risk === 'high' && t.confidence === 'confirmed');
-  const medium = trackers.filter(t => t.risk === 'medium');
+
+  const highConfirmed = trackers.filter(t => t.risk === 'high' && t.confidence === 'confirmed');
+  if (highConfirmed.length) factors.push({
+    id: 'high-confirmed',
+    label: `${highConfirmed.length} tracker${highConfirmed.length>1?'s':''} pub. confirmé${highConfirmed.length>1?'s':''}`,
+    detail: 'Ces domaines collectent et revendent vos données de navigation à des réseaux publicitaires tiers. Chaque tracker confirmé contribue ×3.',
+    formula: `${highConfirmed.length} × 3 = ${highConfirmed.length*3} pts`,
+    points: highConfirmed.length * 3, severity: 'high',
+    examples: highConfirmed.slice(0,3).map(t => t.name)
+  });
+
+  const highLikely = trackers.filter(t => t.risk === 'high' && t.confidence === 'likely');
+  if (highLikely.length) factors.push({
+    id: 'high-likely',
+    label: `${highLikely.length} tracker${highLikely.length>1?'s':''} pub. probable${highLikely.length>1?'s':''}`,
+    detail: 'Correspondance par sous-domaine — présence probable mais non certaine. Contribue ×2 (pondération réduite).',
+    formula: `${highLikely.length} × 2 = ${highLikely.length*2} pts`,
+    points: highLikely.length * 2, severity: 'high',
+    examples: highLikely.slice(0,3).map(t => t.name)
+  });
+
   const replay = trackers.filter(t => t.category === 'session-replay');
-  const fp     = trackers.filter(t => t.category === 'fingerprinting');
-  if (high.length)    factors.push({ label: `${high.length} tracker${high.length>1?'s':''} pub. à risque élevé`, points: high.length*3, severity: 'high' });
-  if (replay.length)  factors.push({ label: `${replay.length} outil${replay.length>1?'s':''} d'enregistrement`, points: replay.length*4, severity: 'high' });
-  if (fp.length)      factors.push({ label: `${fp.length} script${fp.length>1?'s':''} de fingerprinting`,       points: fp.length*4,   severity: 'high' });
-  if (medium.length)  factors.push({ label: `${medium.length} tracker${medium.length>1?'s':''} modéré`,          points: medium.length*2, severity: 'medium' });
-  if (unknown.length) factors.push({ label: `${unknown.length} domaine${unknown.length>1?'s':''} non identifiés`, points: unknown.length, severity: 'low' });
-  return factors;
+  if (replay.length) factors.push({
+    id: 'session-replay',
+    label: `${replay.length} outil${replay.length>1?'s':''} d'enregistrement de session`,
+    detail: 'Ces outils enregistrent vos clics, défilements et saisies en temps réel — la forme la plus intrusive de collecte. Pondération ×4.',
+    formula: `${replay.length} × 4 = ${replay.length*4} pts`,
+    points: replay.length * 4, severity: 'high',
+    examples: replay.slice(0,3).map(t => t.name)
+  });
+
+  const fp = trackers.filter(t => t.category === 'fingerprinting');
+  if (fp.length) factors.push({
+    id: 'fingerprinting',
+    label: `${fp.length} script${fp.length>1?'s':''} de fingerprinting`,
+    detail: 'Identifient votre appareil sans cookie, via 200+ caractéristiques techniques. Impossible à bloquer par la suppression des cookies. Pondération ×4.',
+    formula: `${fp.length} × 4 = ${fp.length*4} pts`,
+    points: fp.length * 4, severity: 'high',
+    examples: fp.slice(0,3).map(t => t.name)
+  });
+
+  const medium = trackers.filter(t => t.risk === 'medium');
+  if (medium.length) factors.push({
+    id: 'medium',
+    label: `${medium.length} tracker${medium.length>1?'s':''} à risque modéré`,
+    detail: 'Analytics, réseaux sociaux, tag managers. Collectent des données d\'usage mais à impact limité sur la vie privée. Pondération ×2.',
+    formula: `${medium.length} × 2 = ${medium.length*2} pts`,
+    points: medium.length * 2, severity: 'medium',
+    examples: medium.slice(0,3).map(t => t.name)
+  });
+
+  if (unknown.length) factors.push({
+    id: 'unknown',
+    label: `${unknown.length} domaine${unknown.length>1?'s':''} tiers non identifié${unknown.length>1?'s':''}`,
+    detail: 'Domaines absents de notre base. Peuvent être inoffensifs (CDN, polices) ou des trackers non répertoriés. Pondération ×1.',
+    formula: `${unknown.length} × 1 = ${unknown.length} pts`,
+    points: unknown.length, severity: 'low',
+    examples: unknown.slice(0,3).map(u => u.domain)
+  });
+
+  const totalPoints = factors.reduce((s, f) => s + f.points, 0);
+  const scoreLabel  = totalPoints === 0 ? 'Propre' :
+                      totalPoints <= 3  ? 'Faible' :
+                      totalPoints <= 8  ? 'Modéré' :
+                      totalPoints <= 15 ? 'Élevé'  : 'Critique';
+  return { factors, totalPoints, scoreLabel };
 }
+
 
 // ── Bloc 2 : Persistance du graphe ────────────────────────────────────────
 // Le graphe est persisté dans chrome.storage.local avec un debounce de 2s.

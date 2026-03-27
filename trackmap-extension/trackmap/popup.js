@@ -118,12 +118,18 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
-// ── Trackers ───────────────────────────────────────────────────────────────
+// ── Bloc 6 & 7 : renderTrackers rewritten ─────────────────────────────────
 
 function renderTrackers(data) {
-  const trackers      = data.trackers          || [];
-  const allThirdParty = data.allThirdPartyDomains || [];
-  const breakdown     = data.breakdown         || [];
+  const trackers      = data.trackers              || [];
+  const unknown       = data.unknown               || [];
+  const allThirdParty = data.allThirdPartyDomains  || [];
+  const breakdown     = data.breakdown             || { factors: [], totalPoints: 0, scoreLabel: '' };
+
+  // Compat : breakdown peut être un tableau (ancien format) ou un objet (nouveau)
+  const bdFactors    = Array.isArray(breakdown) ? breakdown : (breakdown.factors || []);
+  const bdTotal      = Array.isArray(breakdown) ? null : breakdown.totalPoints;
+  const bdLabel      = Array.isArray(breakdown) ? null : breakdown.scoreLabel;
 
   const high   = trackers.filter(t => t.risk === 'high').length;
   const medium = trackers.filter(t => t.risk === 'medium').length;
@@ -136,6 +142,7 @@ function renderTrackers(data) {
   document.getElementById('stats-bar').style.display = 'flex';
   document.getElementById('tab-count-trackers').textContent = trackers.length;
 
+  // Badge risque global
   const badge = document.getElementById('risk-badge');
   if (high > 0)        { badge.className = 'risk-badge high';   badge.textContent = `${high} risque${high>1?'s':''} élevé${high>1?'s':''}`; }
   else if (medium > 0) { badge.className = 'risk-badge medium'; badge.textContent = `${medium} trackers`; }
@@ -144,44 +151,207 @@ function renderTrackers(data) {
 
   const content = document.getElementById('trackers-content');
   if (!trackers.length && !allThirdParty.length) {
-    content.innerHTML = `<div class="empty"><div class="empty-icon">✓</div><div class="empty-title">Aucun tracker détecté</div><div class="empty-desc">Cette page semble propre.</div></div>`;
+    content.innerHTML = `<div class="empty"><div class="empty-icon">✓</div>
+      <div class="empty-title">Aucun tracker détecté</div>
+      <div class="empty-desc">Cette page semble propre.<br>Pas de scripts tiers identifiés.</div></div>`;
     return;
   }
 
   let html = '';
-  if (breakdown.length) {
-    html += `<div class="section-label">Explication du score</div><div class="breakdown-list">`;
-    breakdown.forEach(f => {
-      html += `<div class="breakdown-item ${f.severity}"><span class="bd-label">${f.label}</span><span class="bd-pts">+${f.points} pts</span></div>`;
+
+  // ── Bloc 7 : Score breakdown expansible ──────────────────────────────────
+  if (bdFactors.length > 0) {
+    const hasLabel = bdLabel && bdLabel !== 'Propre';
+    html += `
+    <div class="breakdown-panel" id="breakdown-panel">
+      <button class="breakdown-toggle" id="breakdown-toggle" aria-expanded="false">
+        <span class="bd-toggle-left">
+          <span class="bd-score-pill ${bdTotal >= 16 ? 'critical' : bdTotal >= 9 ? 'high' : bdTotal >= 4 ? 'medium' : 'low'}">
+            ${bdTotal !== null ? bdTotal + ' pts' : ''}
+          </span>
+          <span class="bd-toggle-label">Pourquoi ce score ?</span>
+        </span>
+        <span class="bd-chevron" id="bd-chevron">▾</span>
+      </button>
+      <div class="breakdown-body" id="breakdown-body">`;
+
+    bdFactors.forEach((f, idx) => {
+      const examplesHtml = f.examples && f.examples.length
+        ? `<div class="bd-examples">${f.examples.map(e => `<span class="bd-example">${e}</span>`).join('')}</div>`
+        : '';
+      html += `
+        <div class="breakdown-factor ${f.severity}" data-idx="${idx}">
+          <div class="bd-factor-header">
+            <span class="bd-factor-label">${f.label}</span>
+            <span class="bd-factor-pts">+${f.points} pts</span>
+          </div>
+          <div class="bd-factor-formula">${f.formula || ''}</div>
+          <div class="bd-factor-detail">${f.detail || ''}</div>
+          ${examplesHtml}
+        </div>`;
+    });
+
+    html += `
+        <div class="breakdown-formula-note">
+          Score = Σ(poids × trackers) / nb_trackers × 3,5 — plafonné à 10
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── Bloc 6 : Trackers confirmés ───────────────────────────────────────────
+  const confirmed = trackers.filter(t => t.confidence === 'confirmed');
+  const likely    = trackers.filter(t => t.confidence === 'likely');
+
+  if (confirmed.length) {
+    html += `<div class="section-label">
+      Trackers confirmés (${confirmed.length})
+      <span class="section-badge confirmed">✓ identifiés avec certitude</span>
+    </div>
+    <div class="tracker-list">`;
+    confirmed.forEach((t, i) => {
+      html += buildTrackerCard(t, i, 'confirmed');
     });
     html += `</div>`;
   }
 
-  if (trackers.length) {
-    html += `<div class="section-label">Trackers identifiés (${trackers.length})</div><div class="tracker-list">`;
-    trackers.forEach((t, i) => {
-      const cb = t.confidence === 'likely' ? `<span class="conf-badge likely">probable</span>` : '';
-      html += `<div class="tracker-item ${risk2Class(t.risk)}" style="animation-delay:${i*40}ms">
-        <div class="tracker-icon ${risk2Class(t.risk)}">${t.icon || t.name.substring(0,2).toUpperCase()}</div>
-        <div class="tracker-info">
-          <div class="tracker-name">${t.name}${cb}<span class="tracker-owner">· ${t.owner||'?'}</span><span class="tracker-cat">${categoryLabel(t.category)}</span></div>
-          <div class="tracker-desc">${t.description}</div>
-          <div class="tracker-domain">${t.domain}${t.matchedOn&&t.matchedOn!==t.domain?` <span class="matched-on">→ ${t.matchedOn}</span>`:''}</div>
-        </div></div>`;
+  // ── Bloc 6 : Trackers probables (bordure pointillée + tooltip) ────────────
+  if (likely.length) {
+    html += `<div class="section-label">
+      Trackers probables (${likely.length})
+      <span class="section-badge likely">~ correspondance partielle</span>
+    </div>
+    <div class="tracker-list">`;
+    likely.forEach((t, i) => {
+      html += buildTrackerCard(t, i + confirmed.length, 'likely');
     });
     html += `</div>`;
   }
 
-  const knownD = new Set(trackers.map(t => t.domain));
-  const unknD  = allThirdParty.filter(d => !knownD.has(d));
-  if (unknD.length) {
-    html += `<div class="section-label">Domaines tiers non identifiés (${unknD.length})</div>`;
-    unknD.slice(0, 8).forEach(d => { html += `<div class="unknown-item">${domainShort(d)}</div>`; });
-    if (unknD.length > 8) html += `<div class="unknown-item">+${unknD.length-8} autres…</div>`;
+  // ── Bloc 6 : Domaines inconnus ────────────────────────────────────────────
+  const unknownDomains = (unknown.length ? unknown : [])
+    .filter(u => !trackers.find(t => t.domain === u.domain));
+
+  // Aussi les domaines tiers qui n'ont pas de match du tout
+  const knownDomains = new Set(trackers.map(t => t.domain));
+  const rawUnknown   = allThirdParty.filter(d => !knownDomains.has(d));
+  const allUnknown   = [...new Set([...unknownDomains.map(u => u.domain), ...rawUnknown])];
+
+  if (allUnknown.length) {
+    html += `<div class="section-label">
+      Domaines tiers non identifiés (${allUnknown.length})
+      <span class="section-badge unknown">? hors base</span>
+    </div>
+    <div class="unknown-list">`;
+    allUnknown.slice(0, 10).forEach(d => {
+      html += `<div class="unknown-row">
+        <div class="unknown-dot"></div>
+        <span class="unknown-domain">${domainShort(d)}</span>
+        <span class="unknown-hint">Domaine tiers non répertorié — peut être un CDN, une police ou un tracker inconnu.</span>
+      </div>`;
+    });
+    if (allUnknown.length > 10) {
+      html += `<div class="unknown-row more">
+        <div class="unknown-dot"></div>
+        <span class="unknown-domain">+${allUnknown.length - 10} autres</span>
+      </div>`;
+    }
+    html += `</div>`;
   }
 
   content.innerHTML = html;
+
+  // Wirer le toggle du breakdown (Bloc 7)
+  wireBdToggle();
+
+  // Wirer les tooltips de confiance (Bloc 6)
+  wireConfidenceTooltips();
 }
+
+// ── Bloc 6 : Construire une carte tracker ─────────────────────────────────
+// confirmed → bordure pleine | likely → bordure pointillée + tooltip
+
+function buildTrackerCard(t, i, confidence) {
+  const cls    = risk2Class(t.risk);
+  const delay  = `${i * 40}ms`;
+  const dotted = confidence === 'likely' ? ' dotted-border' : '';
+
+  // Tooltip pour les trackers probables
+  let tooltipHtml = '';
+  if (confidence === 'likely' && t.matchedOn) {
+    const tooltipText = `Ce sous-domaine (${t.domain}) appartient probablement à ${t.name} — correspondance par domaine parent "${t.matchedOn}". Non confirmé à 100%.`;
+    tooltipHtml = `<div class="conf-tooltip" role="tooltip">${tooltipText}</div>`;
+  }
+
+  const confBadge = confidence === 'likely'
+    ? `<span class="conf-badge likely" tabindex="0" aria-describedby="tooltip-${i}">probable ?</span>`
+    : `<span class="conf-badge confirmed">✓</span>`;
+
+  const matchedOnHtml = t.matchedOn && t.matchedOn !== t.domain
+    ? ` <span class="matched-on">→ ${t.matchedOn}</span>` : '';
+
+  return `
+  <div class="tracker-item ${cls}${dotted}" style="animation-delay:${delay}" data-confidence="${confidence}">
+    ${tooltipHtml}
+    <div class="tracker-icon ${cls}">${t.icon || t.name.substring(0,2).toUpperCase()}</div>
+    <div class="tracker-info">
+      <div class="tracker-name">
+        ${t.name}
+        ${confBadge}
+        <span class="tracker-owner">· ${t.owner || '?'}</span>
+        <span class="tracker-cat">${categoryLabel(t.category)}</span>
+      </div>
+      <div class="tracker-desc">${t.description}</div>
+      <div class="tracker-domain">${t.domain}${matchedOnHtml}</div>
+    </div>
+  </div>`;
+}
+
+// ── Bloc 7 : Toggle breakdown ─────────────────────────────────────────────
+
+function wireBdToggle() {
+  const toggle = document.getElementById('breakdown-toggle');
+  const body   = document.getElementById('breakdown-body');
+  const chev   = document.getElementById('bd-chevron');
+  if (!toggle || !body) return;
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    body.classList.toggle('open', !expanded);
+    chev.textContent = expanded ? '▾' : '▴';
+  });
+}
+
+// ── Bloc 6 : Tooltips au survol pour trackers probables ───────────────────
+
+function wireConfidenceTooltips() {
+  document.querySelectorAll('.tracker-item.dotted-border').forEach(card => {
+    const tooltip = card.querySelector('.conf-tooltip');
+    if (!tooltip) return;
+    const badge = card.querySelector('.conf-badge.likely');
+    if (!badge) return;
+
+    let hideTimer = null;
+
+    const show = () => {
+      clearTimeout(hideTimer);
+      // Positionner le tooltip sous le badge
+      tooltip.classList.add('visible');
+    };
+    const hide = () => {
+      hideTimer = setTimeout(() => tooltip.classList.remove('visible'), 150);
+    };
+
+    badge.addEventListener('mouseenter', show);
+    badge.addEventListener('focus', show);
+    badge.addEventListener('mouseleave', hide);
+    badge.addEventListener('blur', hide);
+    tooltip.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+    tooltip.addEventListener('mouseleave', hide);
+  });
+}
+
 
 function showEmpty() {
   ['stat-high','stat-medium','stat-low','stat-total'].forEach(id => document.getElementById(id).textContent = '—');

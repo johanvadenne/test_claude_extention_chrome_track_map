@@ -290,6 +290,170 @@
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ══════════════════════════════════════════════════════
+     BLOC 6 : Distinction confirmed / likely / unknown
+     ══════════════════════════════════════════════════════ */
+
+  /* Bordure pointillée pour les trackers probables */
+  .tracker-item.dotted-border {
+    border-style: dashed !important;
+    opacity: 0.9;
+    position: relative;
+  }
+  .tracker-item.dotted-border::before {
+    border-style: dashed !important;
+  }
+
+  /* Section labels avec badge inline */
+  .section-badge {
+    display: inline-block;
+    font-size: 9px; font-weight: 500;
+    padding: 1px 6px; border-radius: 10px;
+    margin-left: 6px; vertical-align: middle;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.2px; text-transform: none;
+  }
+  .section-badge.confirmed { background: rgba(46,204,113,0.12); color: #2ecc71; border: 1px solid rgba(46,204,113,0.25); }
+  .section-badge.likely    { background: rgba(255,179,71,0.12); color: var(--amber); border: 1px solid rgba(255,179,71,0.25); }
+  .section-badge.unknown   { background: var(--bg3); color: var(--text3); border: 1px solid var(--border); }
+
+  /* Badge de confiance dans le nom du tracker */
+  .conf-badge {
+    display: inline-block; font-size: 9px; font-weight: 600;
+    padding: 1px 5px; border-radius: 4px; margin-left: 4px;
+    vertical-align: middle; font-family: 'Space Mono', monospace;
+    cursor: default;
+  }
+  .conf-badge.confirmed { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+  .conf-badge.likely    { background: rgba(255,179,71,0.12); color: var(--amber); border: 1px solid rgba(255,179,71,0.25); cursor: help; }
+
+  /* Tooltip pour "probable" */
+  .conf-tooltip {
+    display: none;
+    position: absolute; z-index: 200;
+    top: calc(100% + 6px); left: 10px; right: 10px;
+    background: #1e1e2e;
+    border: 1px solid rgba(255,179,71,0.3);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 10px; line-height: 1.5;
+    color: var(--text2);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+  .conf-tooltip.visible { display: block; pointer-events: auto; }
+  .conf-tooltip::before {
+    content: '';
+    position: absolute; bottom: 100%; left: 20px;
+    border: 5px solid transparent;
+    border-bottom-color: rgba(255,179,71,0.3);
+  }
+
+  /* Domaine résolu */
+  .matched-on { font-size: 9px; color: var(--text3); font-family: 'Space Mono', monospace; }
+
+  /* Bloc domaines inconnus */
+  .unknown-list { padding: 4px 12px 8px; }
+  .unknown-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 0; border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .unknown-row:last-child { border-bottom: none; }
+  .unknown-row.more { border-bottom: none; opacity: 0.6; }
+  .unknown-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text3); flex-shrink: 0; margin-top: 4px;
+  }
+  .unknown-domain { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--text3); flex-shrink: 0; min-width: 120px; }
+  .unknown-hint {
+    font-size: 10px; color: var(--text3); line-height: 1.4;
+    opacity: 0.7; display: none;
+  }
+  .unknown-row:hover .unknown-hint { display: block; }
+
+  /* ══════════════════════════════════════════════════════
+     BLOC 7 : Score breakdown expansible
+     ══════════════════════════════════════════════════════ */
+
+  .breakdown-panel {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  .breakdown-toggle {
+    width: 100%; padding: 9px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: transparent; border: none; cursor: pointer;
+    color: var(--text2); font-family: 'DM Sans', sans-serif;
+    font-size: 12px; transition: background .15s;
+  }
+  .breakdown-toggle:hover { background: var(--bg3); }
+
+  .bd-toggle-left { display: flex; align-items: center; gap: 8px; }
+
+  .bd-score-pill {
+    display: inline-block; font-family: 'Space Mono', monospace;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px; flex-shrink: 0;
+  }
+  .bd-score-pill.low      { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.3); }
+  .bd-score-pill.medium   { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(255,179,71,0.3); }
+  .bd-score-pill.high     { background: var(--red-bg);   color: var(--red);   border: 1px solid rgba(255,71,87,0.3); }
+  .bd-score-pill.critical { background: rgba(255,30,60,0.15); color: #ff1e3c; border: 1px solid rgba(255,30,60,0.4); }
+
+  .bd-toggle-label { color: var(--text2); font-size: 12px; }
+  .bd-chevron { font-size: 11px; color: var(--text3); transition: transform .2s; flex-shrink: 0; }
+
+  /* Corps du breakdown, caché par défaut */
+  .breakdown-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 12px;
+  }
+  .breakdown-body.open {
+    max-height: 600px;
+    padding: 4px 12px 8px;
+  }
+
+  /* Chaque facteur */
+  .breakdown-factor {
+    padding: 8px 10px; border-radius: var(--radius-sm);
+    margin-bottom: 6px; border-left: 3px solid transparent;
+  }
+  .breakdown-factor.high   { background: rgba(255,71,87,0.06);  border-left-color: var(--red); }
+  .breakdown-factor.medium { background: rgba(255,179,71,0.06); border-left-color: var(--amber); }
+  .breakdown-factor.low    { background: var(--bg3);            border-left-color: var(--text3); }
+
+  .bd-factor-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .bd-factor-label { font-size: 12px; font-weight: 500; color: var(--text); flex: 1; }
+  .bd-factor-pts {
+    font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+    color: var(--text2); flex-shrink: 0; margin-left: 8px;
+  }
+  .bd-factor-formula {
+    font-family: 'Space Mono', monospace; font-size: 9px;
+    color: var(--text3); margin-bottom: 4px;
+  }
+  .bd-factor-detail { font-size: 10px; color: var(--text2); line-height: 1.5; margin-bottom: 4px; }
+  .bd-examples { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+  .bd-example {
+    font-size: 9px; padding: 1px 6px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 3px;
+    color: var(--text3); font-family: 'Space Mono', monospace;
+  }
+
+  /* Note formule */
+  .breakdown-formula-note {
+    font-size: 9px; color: var(--text3); font-family: 'Space Mono', monospace;
+    padding: 6px 4px 2px; text-align: center; opacity: 0.6;
+    border-top: 1px solid var(--border); margin-top: 4px;
+  }
+
 </style>
 </head>
 <body>

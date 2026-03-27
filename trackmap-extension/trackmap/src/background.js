@@ -404,9 +404,19 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       if (d && d !== previousDomain) previousDomain = d;
     } catch(_) {}
   }
-  // Nettoyer le cache webRequest quand un onglet se recharge
   if (changeInfo.status === 'loading') {
     webRequestDomains.delete(tabId);
+  }
+  // Bloc 4 : notifier le popup si la navigation est terminée sur l'onglet actif
+  if (changeInfo.status === 'complete' && tabId === currentTab && tab.url) {
+    try {
+      const proto = new URL(tab.url).protocol;
+      if (proto !== 'http:' && proto !== 'https:') return;
+    } catch(_) { return; }
+    const views = chrome.extension.getViews({ type: 'popup' });
+    if (views.length > 0) {
+      chrome.runtime.sendMessage({ type: 'NAV_UPDATE', tabId }).catch(() => {});
+    }
   }
 });
 

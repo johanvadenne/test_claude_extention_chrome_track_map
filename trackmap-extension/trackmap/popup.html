@@ -7,350 +7,252 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* ── Reset & base ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0a0a0f;
-    --bg2: #111118;
-    --bg3: #1a1a24;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.12);
-    --text: #e8e8f0;
-    --text2: #8888a8;
-    --text3: #555570;
-    --accent: #7c6dfa;
-    --accent2: #a89cf7;
-    --red: #ff4757;
-    --amber: #ffb347;
-    --green: #2ecc71;
-    --red-bg: rgba(255,71,87,0.1);
-    --amber-bg: rgba(255,179,71,0.1);
-    --green-bg: rgba(46,204,113,0.1);
-    --radius: 10px;
-    --radius-sm: 6px;
+    --bg: #0a0a0f; --bg2: #111118; --bg3: #1a1a24;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --text: #e8e8f0; --text2: #8888a8; --text3: #555570;
+    --accent: #7c6dfa; --accent2: #a89cf7;
+    --red: #ff4757; --amber: #ffb347; --green: #2ecc71;
+    --red-bg: rgba(255,71,87,0.1); --amber-bg: rgba(255,179,71,0.1); --green-bg: rgba(46,204,113,0.1);
+    --radius: 10px; --radius-sm: 6px;
   }
 
   body {
-    width: 380px;
-    min-height: 520px;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
+    width: 380px; min-height: 520px;
+    background: var(--bg); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
     overflow-x: hidden;
   }
 
+  /* ── Bloc 4 : barre de progression NAV_UPDATE ── */
+  #nav-progress {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; z-index: 100; overflow: hidden;
+    background: transparent; pointer-events: none;
+  }
+  #nav-progress-bar {
+    height: 100%; width: 0%;
+    background: var(--accent);
+    transition: width 0.15s ease;
+    border-radius: 0 1px 1px 0;
+  }
+  #nav-progress.running #nav-progress-bar {
+    animation: navProgress 1.2s ease-out forwards;
+  }
+  @keyframes navProgress {
+    0%   { width: 0%; opacity: 1; }
+    60%  { width: 85%; opacity: 1; }
+    90%  { width: 95%; opacity: 1; }
+    100% { width: 100%; opacity: 0; }
+  }
+
+  /* ── Fondu contenu lors du refresh ── */
+  .panel-fade { transition: opacity 0.2s ease; }
+  .panel-fade.refreshing { opacity: 0.45; pointer-events: none; }
+
   /* ── Header ── */
   .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
     padding: 14px 16px 10px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg2);
+    border-bottom: 1px solid var(--border); background: var(--bg2);
+    position: relative;
   }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
+  .logo { display: flex; align-items: center; gap: 8px; }
   .logo-mark {
-    width: 28px;
-    height: 28px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    width: 28px; height: 28px; background: var(--accent);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
-
   .logo-mark svg { width: 16px; height: 16px; }
-
-  .logo-text {
-    font-family: 'Space Mono', monospace;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    color: var(--text);
-  }
-
+  .logo-text { font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; letter-spacing: -0.5px; }
   .logo-text span { color: var(--accent2); }
 
   .header-actions { display: flex; gap: 6px; }
-
   .btn-icon {
-    width: 28px; height: 28px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    width: 28px; height: 28px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    color: var(--text2);
-    transition: all .15s;
+    cursor: pointer; color: var(--text2); transition: all .15s;
   }
   .btn-icon:hover { background: var(--border2); color: var(--text); }
   .btn-icon svg { width: 14px; height: 14px; }
 
-  /* ── Current site banner ── */
+  /* ── Indicateur nav en cours ── */
+  #nav-indicator {
+    display: none; align-items: center; gap: 5px;
+    font-size: 10px; color: var(--accent2);
+    padding: 2px 8px; background: rgba(124,109,250,0.1);
+    border: 1px solid rgba(124,109,250,0.2); border-radius: 20px;
+  }
+  #nav-indicator.visible { display: flex; }
+  .nav-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent); animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* ── Site banner ── */
   .site-banner {
-    padding: 12px 16px;
-    background: var(--bg2);
+    padding: 12px 16px; background: var(--bg2);
     border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
-
   .site-info { min-width: 0; flex: 1; }
-
-  .site-domain {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .site-title {
-    font-size: 11px;
-    color: var(--text2);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 1px;
-  }
-
-  .risk-badge {
-    flex-shrink: 0;
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    font-family: 'Space Mono', monospace;
-    letter-spacing: 0.3px;
-  }
-  .risk-badge.high { background: var(--red-bg); color: var(--red); border: 1px solid rgba(255,71,87,0.25); }
+  .site-domain { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .site-title  { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .risk-badge { flex-shrink: 0; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: 'Space Mono', monospace; }
+  .risk-badge.high   { background: var(--red-bg);   color: var(--red);   border: 1px solid rgba(255,71,87,0.25); }
   .risk-badge.medium { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(255,179,71,0.25); }
-  .risk-badge.low { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
-  .risk-badge.none { background: var(--bg3); color: var(--text3); border: 1px solid var(--border); }
+  .risk-badge.low    { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
+  .risk-badge.none   { background: var(--bg3); color: var(--text3); border: 1px solid var(--border); }
 
   /* ── Tabs ── */
-  .tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg2);
-    padding: 0 16px;
-    gap: 0;
-  }
-
+  .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--bg2); padding: 0 16px; }
   .tab {
-    padding: 10px 14px 9px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text3);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all .15s;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
+    padding: 10px 14px 9px; font-size: 12px; font-weight: 500; color: var(--text3);
+    cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s;
+    display: flex; align-items: center; gap: 5px; white-space: nowrap;
   }
   .tab:hover { color: var(--text2); }
   .tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
-
   .tab-count {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1px 6px;
-    font-size: 10px;
-    font-family: 'Space Mono', monospace;
-    color: var(--text3);
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1px 6px; font-size: 10px;
+    font-family: 'Space Mono', monospace; color: var(--text3);
   }
   .tab.active .tab-count { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-  /* ── Panel ── */
+  /* ── Panels ── */
   .panel { display: none; }
   .panel.active { display: block; }
 
+  /* ── Stats bar ── */
+  .stats-bar { display: flex; gap: 1px; padding: 8px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+  .stat { flex: 1; text-align: center; padding: 8px 4px; background: var(--bg3); border-radius: var(--radius-sm); }
+  .stat + .stat { margin-left: 5px; }
+  .stat-val { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); }
+  .stat-val.red { color: var(--red); } .stat-val.amber { color: var(--amber); } .stat-val.green { color: var(--green); }
+  .stat-lbl { font-size: 10px; color: var(--text3); margin-top: 1px; }
+
   /* ── Tracker list ── */
   .tracker-list { padding: 10px 12px; }
-
   .tracker-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 6px;
-    cursor: pointer;
-    transition: all .15s;
-    position: relative;
-    overflow: hidden;
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 6px;
+    position: relative; overflow: hidden;
+    animation: fadeIn .2s ease forwards;
   }
-  .tracker-item::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 2px;
-  }
-  .tracker-item.high::before { background: var(--red); }
+  .tracker-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; }
+  .tracker-item.high::before   { background: var(--red); }
   .tracker-item.medium::before { background: var(--amber); }
-  .tracker-item.low::before { background: var(--green); }
-
-  .tracker-item:hover { background: var(--bg3); border-color: var(--border2); }
-
+  .tracker-item.low::before    { background: var(--green); }
   .tracker-icon {
-    width: 28px; height: 28px;
-    border-radius: var(--radius-sm);
+    width: 28px; height: 28px; border-radius: var(--radius-sm);
     display: flex; align-items: center; justify-content: center;
-    font-size: 10px;
-    font-family: 'Space Mono', monospace;
-    font-weight: 700;
-    flex-shrink: 0;
-    color: #fff;
+    font-size: 10px; font-family: 'Space Mono', monospace; font-weight: 700; flex-shrink: 0; color: #fff;
   }
-  .tracker-icon.high { background: rgba(255,71,87,0.2); color: var(--red); }
+  .tracker-icon.high   { background: rgba(255,71,87,0.2);  color: var(--red); }
   .tracker-icon.medium { background: rgba(255,179,71,0.2); color: var(--amber); }
-  .tracker-icon.low { background: rgba(46,204,113,0.2); color: var(--green); }
-
+  .tracker-icon.low    { background: rgba(46,204,113,0.2); color: var(--green); }
   .tracker-info { flex: 1; min-width: 0; }
+  .tracker-name { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .tracker-owner { font-size: 10px; color: var(--text3); font-weight: 400; }
+  .tracker-cat { font-size: 10px; padding: 1px 6px; background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; color: var(--text3); }
+  .tracker-desc { font-size: 11px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
+  .tracker-domain { font-size: 10px; color: var(--text3); margin-top: 3px; font-family: 'Space Mono', monospace; }
 
-  .tracker-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex-wrap: wrap;
+  /* ── Confidence + matched-on ── */
+  .conf-badge {
+    display: inline-block; font-size: 9px; font-weight: 600;
+    padding: 1px 5px; border-radius: 4px; margin-left: 4px;
+    vertical-align: middle; font-family: 'Space Mono', monospace;
   }
+  .conf-badge.likely { background: rgba(255,179,71,0.12); color: var(--amber); border: 1px solid rgba(255,179,71,0.25); }
+  .matched-on { font-size: 9px; color: var(--text3); font-family: 'Space Mono', monospace; }
 
-  .tracker-owner {
-    font-size: 10px;
-    color: var(--text3);
-    font-weight: 400;
+  /* ── Breakdown score ── */
+  .breakdown-list { padding: 4px 12px 8px; }
+  .breakdown-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 8px; border-radius: var(--radius-sm); margin-bottom: 3px;
+    font-size: 11px; border-left: 2px solid transparent;
   }
+  .breakdown-item.high   { background: var(--red-bg);   border-left-color: var(--red);   color: var(--text2); }
+  .breakdown-item.medium { background: var(--amber-bg); border-left-color: var(--amber); color: var(--text2); }
+  .breakdown-item.low    { background: var(--bg3);      border-left-color: var(--text3); color: var(--text3); }
+  .bd-label { flex: 1; }
+  .bd-pts { font-family: 'Space Mono', monospace; font-size: 10px; opacity: .7; margin-left: 8px; flex-shrink: 0; }
 
-  .tracker-cat {
-    font-size: 10px;
-    padding: 1px 6px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text3);
-  }
-
-  .tracker-desc {
-    font-size: 11px;
-    color: var(--text2);
-    margin-top: 3px;
-    line-height: 1.5;
-  }
-
-  .tracker-domain {
-    font-size: 10px;
-    color: var(--text3);
-    margin-top: 3px;
-    font-family: 'Space Mono', monospace;
-  }
-
-  /* ── Empty state ── */
-  .empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text3);
-  }
+  /* ── Empty / loading ── */
+  .empty { text-align: center; padding: 40px 20px; color: var(--text3); }
   .empty-icon { font-size: 32px; margin-bottom: 10px; }
   .empty-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
   .empty-desc { font-size: 11px; line-height: 1.5; }
-
-  /* ── Loading ── */
-  .loading {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text3);
-  }
+  .loading { text-align: center; padding: 40px 20px; color: var(--text3); }
   .spinner {
-    width: 24px; height: 24px;
-    border: 2px solid var(--border2);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-    margin: 0 auto 10px;
+    width: 24px; height: 24px; border: 2px solid var(--border2);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin .7s linear infinite; margin: 0 auto 10px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── Stats bar ── */
-  .stats-bar {
-    display: flex;
-    gap: 1px;
-    padding: 8px 12px;
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-  }
-  .stat {
-    flex: 1;
-    text-align: center;
-    padding: 8px 4px;
-    background: var(--bg3);
-    border-radius: var(--radius-sm);
-  }
-  .stat + .stat { margin-left: 5px; }
-  .stat-val { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); }
-  .stat-val.red { color: var(--red); }
-  .stat-val.amber { color: var(--amber); }
-  .stat-val.green { color: var(--green); }
-  .stat-lbl { font-size: 10px; color: var(--text3); margin-top: 1px; }
-
-  /* ── Graph panel ── */
+  /* ── Bloc 5 : Graph SVG panel ── */
   #graph-panel { padding: 0; }
-  #graph-canvas-wrap {
-    position: relative;
-    width: 100%;
-    height: 300px;
-    background: var(--bg);
-    overflow: hidden;
-    border-bottom: 1px solid var(--border);
+
+  /* Toolbar du graphe */
+  .graph-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px; background: var(--bg2);
+    border-bottom: 1px solid var(--border); gap: 8px;
   }
-  #graph-canvas { width: 100%; height: 100%; display: block; }
+  .graph-toolbar-left { display: flex; align-items: center; gap: 6px; }
+  .graph-mode-btn {
+    padding: 3px 9px; font-size: 10px; font-weight: 500;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text3); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all .15s;
+  }
+  .graph-mode-btn.active { background: rgba(124,109,250,0.15); border-color: var(--accent); color: var(--accent2); }
+  .graph-mode-btn:hover:not(.active) { border-color: var(--border2); color: var(--text2); }
+
+  .btn-reset-view {
+    padding: 3px 9px; font-size: 10px;
+    background: transparent; border: 1px solid var(--border2);
+    border-radius: 4px; color: var(--text3); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all .15s;
+  }
+  .btn-reset-view:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* Zone SVG */
+  #graph-svg-wrap {
+    width: 100%; height: 300px; background: var(--bg);
+    overflow: hidden; border-bottom: 1px solid var(--border);
+    cursor: grab; position: relative; user-select: none;
+  }
+  #graph-svg-wrap.dragging { cursor: grabbing; }
+  #graph-svg { width: 100%; height: 100%; display: block; }
+
+  /* Hint zoom */
+  #graph-hint {
+    position: absolute; bottom: 6px; right: 8px;
+    font-size: 9px; color: var(--text3);
+    pointer-events: none; font-family: 'Space Mono', monospace;
+    opacity: 0.6;
+  }
 
   .graph-legend {
-    padding: 8px 16px;
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg2);
+    padding: 6px 16px; display: flex; gap: 14px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); background: var(--bg2);
   }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 10px;
-    color: var(--text2);
-  }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text2); }
   .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  .graph-nodes-list { padding: 8px 12px; max-height: 160px; overflow-y: auto; }
+  .graph-nodes-list { padding: 8px 12px; max-height: 150px; overflow-y: auto; }
   .graph-node-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    border-radius: var(--radius-sm);
-    margin-bottom: 3px;
-    cursor: pointer;
-    transition: background .15s;
+    display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+    border-radius: var(--radius-sm); margin-bottom: 3px; cursor: pointer; transition: background .15s;
   }
   .graph-node-item:hover { background: var(--bg3); }
   .gn-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -358,101 +260,42 @@
   .gn-visits { font-size: 10px; color: var(--text3); font-family: 'Space Mono', monospace; }
   .gn-trackers { font-size: 10px; color: var(--text2); background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
 
+  /* ── Section labels + unknown ── */
+  .section-label {
+    font-size: 10px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 12px 4px;
+  }
+  .unknown-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 12px; border-top: 1px solid var(--border);
+    color: var(--text3); font-size: 11px; font-family: 'Space Mono', monospace;
+  }
+  .unknown-item::before { content: '—'; color: var(--border2); font-size: 10px; }
+
   /* ── Footer ── */
   .footer {
-    padding: 8px 16px;
-    border-top: 1px solid var(--border);
-    background: var(--bg2);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    padding: 8px 16px; border-top: 1px solid var(--border); background: var(--bg2);
+    display: flex; align-items: center; justify-content: space-between;
   }
   .footer-text { font-size: 10px; color: var(--text3); }
-
   .btn-clear {
-    padding: 4px 10px;
-    background: transparent;
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    color: var(--text3);
-    font-size: 10px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all .15s;
+    padding: 4px 10px; background: transparent; border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); color: var(--text3); font-size: 10px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s;
   }
   .btn-clear:hover { border-color: var(--red); color: var(--red); background: var(--red-bg); }
 
-  /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
-  /* ── Unknown trackers section ── */
-  .section-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    padding: 8px 12px 4px;
-  }
-
-  .unknown-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 12px;
-    border-top: 1px solid var(--border);
-    color: var(--text3);
-    font-size: 11px;
-    font-family: 'Space Mono', monospace;
-  }
-  .unknown-item::before {
-    content: '—';
-    color: var(--border2);
-    font-size: 10px;
-  }
-
-  /* ── Animations ── */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .tracker-item { animation: fadeIn .2s ease forwards; }
-
-  /* ── Badge confiance "probable" ── */
-  .conf-badge {
-    display: inline-block;
-    font-size: 9px; font-weight: 600;
-    padding: 1px 5px; border-radius: 4px;
-    margin-left: 4px; vertical-align: middle;
-    font-family: 'Space Mono', monospace;
-  }
-  .conf-badge.likely {
-    background: rgba(255,179,71,0.12);
-    color: var(--amber);
-    border: 1px solid rgba(255,179,71,0.25);
-  }
-
-  /* ── Domaine résolu (sous-domaine → parent) ── */
-  .matched-on { font-size: 9px; color: var(--text3); font-family: 'Space Mono', monospace; }
-
-  /* ── Décomposition du score de risque ── */
-  .breakdown-list { padding: 4px 12px 8px; }
-  .breakdown-item {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 5px 8px; border-radius: var(--radius-sm);
-    margin-bottom: 3px; font-size: 11px;
-    border-left: 2px solid transparent;
-  }
-  .breakdown-item.high   { background: var(--red-bg);   border-left-color: var(--red);   color: var(--text2); }
-  .breakdown-item.medium { background: var(--amber-bg); border-left-color: var(--amber); color: var(--text2); }
-  .breakdown-item.low    { background: var(--bg3);      border-left-color: var(--text3); color: var(--text3); }
-  .bd-label { flex: 1; }
-  .bd-pts { font-family: 'Space Mono', monospace; font-size: 10px; opacity: 0.7; margin-left: 8px; flex-shrink: 0; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
+
+<!-- Bloc 4 : barre de progression navigation -->
+<div id="nav-progress"><div id="nav-progress-bar"></div></div>
 
 <!-- Header -->
 <div class="header">
@@ -472,15 +315,19 @@
     </div>
     <span class="logo-text">Track<span>Map</span></span>
   </div>
-  <div class="header-actions">
-    <button class="btn-icon" id="btn-refresh" title="Actualiser">
-      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-        <path d="M12.5 2.5C11.3 1.2 9.7.5 8 .5A6.5 6.5 0 001.5 7"/>
-        <path d="M1.5 11.5C2.7 12.8 4.3 13.5 6 13.5A6.5 6.5 0 0012.5 7"/>
-        <polyline points="10.5,0.5 12.5,2.5 10.5,4.5"/>
-        <polyline points="3.5,9.5 1.5,11.5 3.5,13.5"/>
-      </svg>
-    </button>
+  <div style="display:flex;align-items:center;gap:8px">
+    <!-- Bloc 4 : indicateur nav en cours -->
+    <div id="nav-indicator"><div class="nav-dot"></div><span>Navigation…</span></div>
+    <div class="header-actions">
+      <button class="btn-icon" id="btn-refresh" title="Actualiser">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M12.5 2.5C11.3 1.2 9.7.5 8 .5A6.5 6.5 0 001.5 7"/>
+          <path d="M1.5 11.5C2.7 12.8 4.3 13.5 6 13.5A6.5 6.5 0 0012.5 7"/>
+          <polyline points="10.5,0.5 12.5,2.5 10.5,4.5"/>
+          <polyline points="3.5,9.5 1.5,11.5 3.5,13.5"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -488,63 +335,55 @@
 <div class="site-banner" id="site-banner">
   <div class="site-info">
     <div class="site-domain" id="site-domain">Chargement…</div>
-    <div class="site-title" id="site-title">—</div>
+    <div class="site-title"  id="site-title">—</div>
   </div>
   <div class="risk-badge none" id="risk-badge">—</div>
 </div>
 
 <!-- Stats bar -->
 <div class="stats-bar" id="stats-bar" style="display:none">
-  <div class="stat">
-    <div class="stat-val red" id="stat-high">0</div>
-    <div class="stat-lbl">Risque élevé</div>
-  </div>
-  <div class="stat">
-    <div class="stat-val amber" id="stat-medium">0</div>
-    <div class="stat-lbl">Risque modéré</div>
-  </div>
-  <div class="stat">
-    <div class="stat-val green" id="stat-low">0</div>
-    <div class="stat-lbl">Risque faible</div>
-  </div>
-  <div class="stat">
-    <div class="stat-val" id="stat-total">0</div>
-    <div class="stat-lbl">Scripts tiers</div>
-  </div>
+  <div class="stat"><div class="stat-val red"   id="stat-high">0</div><div class="stat-lbl">Risque élevé</div></div>
+  <div class="stat"><div class="stat-val amber"  id="stat-medium">0</div><div class="stat-lbl">Risque modéré</div></div>
+  <div class="stat"><div class="stat-val green"  id="stat-low">0</div><div class="stat-lbl">Risque faible</div></div>
+  <div class="stat"><div class="stat-val"        id="stat-total">0</div><div class="stat-lbl">Scripts tiers</div></div>
 </div>
 
 <!-- Tabs -->
 <div class="tabs">
-  <div class="tab active" data-tab="trackers">
-    Trackers
-    <span class="tab-count" id="tab-count-trackers">0</span>
-  </div>
-  <div class="tab" data-tab="graph">
-    Ma session
-    <span class="tab-count" id="tab-count-graph">0</span>
-  </div>
+  <div class="tab active" data-tab="trackers">Trackers <span class="tab-count" id="tab-count-trackers">0</span></div>
+  <div class="tab"        data-tab="graph">Ma session  <span class="tab-count" id="tab-count-graph">0</span></div>
 </div>
 
-<!-- Panel: Trackers -->
-<div class="panel active" id="panel-trackers">
+<!-- Panel Trackers -->
+<div class="panel active panel-fade" id="panel-trackers">
   <div id="trackers-content">
-    <div class="loading">
-      <div class="spinner"></div>
-      <div style="font-size:11px">Analyse en cours…</div>
-    </div>
+    <div class="loading"><div class="spinner"></div><div style="font-size:11px">Analyse en cours…</div></div>
   </div>
 </div>
 
-<!-- Panel: Session graph -->
+<!-- Panel Session graph -->
 <div class="panel" id="panel-graph">
   <div id="graph-panel">
-    <div id="graph-canvas-wrap">
-      <canvas id="graph-canvas"></canvas>
+
+    <!-- Bloc 5 : toolbar graphe -->
+    <div class="graph-toolbar">
+      <div class="graph-toolbar-left">
+        <button class="graph-mode-btn active" id="btn-mode-force"   data-mode="force">Force</button>
+        <button class="graph-mode-btn"        id="btn-mode-cluster" data-mode="cluster">Cluster</button>
+      </div>
+      <button class="btn-reset-view" id="btn-reset-view">Recentrer</button>
     </div>
+
+    <!-- Bloc 5 : SVG remplace le canvas -->
+    <div id="graph-svg-wrap">
+      <svg id="graph-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="graph-hint">scroll = zoom · drag = pan · nœud = déplacer</div>
+    </div>
+
     <div class="graph-legend">
       <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Risque élevé</div>
       <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div> Modéré</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Faible / sûr</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Faible</div>
       <div class="legend-item"><div class="legend-dot" style="background:#555570"></div> Inconnu</div>
     </div>
     <div class="graph-nodes-list" id="graph-nodes-list"></div>

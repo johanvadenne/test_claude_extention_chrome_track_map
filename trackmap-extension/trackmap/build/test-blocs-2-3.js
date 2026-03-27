@@ -350,14 +350,20 @@ test('Manifest : matches restreints à http/https seulement', () => {
   assert(!hostPerms.includes('<all_urls>'), 'host_permissions <all_urls> supprimé');
 });
 
-test('Manifest : exclude_matches défini pour pages système', () => {
+test('Manifest : pages système exclues par les matches http/https (pas de exclude_matches invalide)', () => {
   const fs   = require('fs');
   const path = require('path');
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '../manifest.json'), 'utf8'));
-  const ex = manifest.content_scripts[0].exclude_matches || [];
+  const cs = manifest.content_scripts[0];
 
-  assert(ex.some(m => m.startsWith('chrome://')),           'chrome:// exclu');
-  assert(ex.some(m => m.startsWith('chrome-extension://')), 'chrome-extension:// exclu');
+  // Chrome refuse chrome://* et chrome-extension://* dans exclude_matches
+  // La protection est assurée par les matches restreints + guard dans content.js
+  assert(!cs.exclude_matches || cs.exclude_matches.length === 0,
+    'exclude_matches doit être absent (schémas chrome:// invalides dans ce champ)');
+
+  // Les matches http/https sont suffisants pour exclure toutes les pages système
+  assert(cs.matches.every(m => m.startsWith('http://') || m.startsWith('https://')),
+    'Tous les matches doivent être http ou https');
 });
 
 // ── Résultats ──────────────────────────────────────────────────────────────
